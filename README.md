@@ -13,15 +13,16 @@ A Rust wrapper for [openstack/liberasurecode].
 [openstack/liberasurecode]: https://github.com/openstack/liberasurecode
 
 
-Prerequisite to Build
----------------------
+Prerequisites to Build
+----------------------
 
 You need to install [openstack/liberasurecode] and its dependencies by executing the following commands before building this crate:
 ```console
-# Install automake and autoconf (using `apt` package manager in this example)
-$ sudo apt install atuomake autoconf
+// Install automake, autoconf and libtool via package manager for your system.
+// Here, we use the apt command as an example.
+$ sudo apt install atuomake autoconf libtool
 
-# Build and install C libraries (gf-complete, jerasure and liberasurecode)
+// Build and install C libraries (gf-complete, jerasure and liberasurecode).
 $ sudo ./install_deps.sh
 ```
 
