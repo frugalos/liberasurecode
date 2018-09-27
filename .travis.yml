@@ -1,7 +1,5 @@
 language: rust
-
 sudo: required
-
 rust:
   - stable
   - beta
@@ -9,6 +7,3 @@ rust:
 matrix:
   allow_failures:
     - rust: nightly
-
-before_install:
-  - sudo ./install_deps.sh

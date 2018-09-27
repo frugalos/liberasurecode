@@ -3,19 +3,19 @@
 //! [openstack/liberasurecode]: https://github.com/openstack/liberasurecode
 //!
 //!
+//! # Prerequisites to Build
 //!
-//! Prerequisites to Build
-//! ----------------------
+//! This crate requires the following packages for building [openstack/liberasurecode] in the build script:
+//! - C compiler (e.g., `gcc`)
+//! - `git`
+//! - `make`
+//! - `automake`
+//! - `autoconf`
+//! - `libtool`
 //!
-//! You need to install [openstack/liberasurecode] and its dependencies by
-//! executing the following commands before building this crate:
+//! For example, on Ubuntu, you can install those by executing the following command:
 //! ```console
-//! // Install automake, autoconf and libtool via package manager for your system.
-//! // Here, we use the apt command as an example.
-//! $ sudo apt install atuomake autoconf libtool
-//!
-//! // Build and install C libraries (gf-complete, jerasure and liberasurecode).
-//! $ sudo ./install_deps.sh
+//! $ sudo apt install gcc git make automake autoconf libtool
 //! ```
 //!
 //!
