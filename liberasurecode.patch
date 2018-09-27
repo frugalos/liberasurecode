@@ -1,0 +1,425 @@
+diff --git a/include/erasurecode/alg_sig.h b/include/erasurecode/alg_sig.h
+index 52554a9..0a6863d 100644
+--- a/include/erasurecode/alg_sig.h
++++ b/include/erasurecode/alg_sig.h
+@@ -44,7 +44,6 @@ typedef struct alg_sig_s
+   int gf_w;
+   int sig_len;
+   struct jerasure_mult_routines mult_routines;
+-  void *jerasure_sohandle;
+   int *tbl1_l;
+   int *tbl1_r;
+   int *tbl2_l;
+diff --git a/src/backends/jerasure/jerasure_rs_cauchy.c b/src/backends/jerasure/jerasure_rs_cauchy.c
+index 3a0365a..217413d 100644
+--- a/src/backends/jerasure/jerasure_rs_cauchy.c
++++ b/src/backends/jerasure/jerasure_rs_cauchy.c
+@@ -28,6 +28,8 @@
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <jerasure.h>
++#include <cauchy.h>
+ 
+ #include "erasurecode.h"
+ #include "erasurecode_backend.h"
+@@ -268,87 +270,16 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
+         }
+     }
+ 
+-    /*
+-     * ISO C forbids casting a void* to a function pointer.
+-     * Since dlsym return returns a void*, we use this union to
+-     * "transform" the void* to a function pointer.
+-     */
+-    union {
+-        cauchy_original_coding_matrix_func  initp;
+-        jerasure_matrix_to_bitmatrix_func matrixtobitmatrixp;
+-        jerasure_smart_bitmatrix_to_schedule_func matrixschedulep;
+-        galois_uninit_field_func uninitp;
+-        jerasure_bitmatrix_encode_func encodep;
+-        jerasure_bitmatrix_decode_func decodep;
+-        jerasure_erasures_to_erased_func erasedp; 
+-        jerasure_make_decoding_bitmatrix_func decodematrixp;
+-        jerasure_bitmatrix_dotprod_func dotprodp;
+-        void *vptr;
+-    } func_handle = {.vptr = NULL};
+-    
+     /* fill in function addresses */
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_bitmatrix_encode");
+-    desc->jerasure_bitmatrix_encode = func_handle.encodep;
+-    if (NULL == desc->jerasure_bitmatrix_encode) {
+-        goto error; 
+-    }
+-  
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_bitmatrix_decode");
+-    desc->jerasure_bitmatrix_decode = func_handle.decodep;
+-    if (NULL == desc->jerasure_bitmatrix_decode) {
+-        goto error; 
+-    }
+-  
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "cauchy_original_coding_matrix");
+-    desc->cauchy_original_coding_matrix = func_handle.initp;
+-    if (NULL == desc->cauchy_original_coding_matrix) {
+-        goto error; 
+-    }
+-    
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_to_bitmatrix");
+-    desc->jerasure_matrix_to_bitmatrix = func_handle.matrixtobitmatrixp;
+-    if (NULL == desc->jerasure_matrix_to_bitmatrix) {
+-        goto error; 
+-    }
+-    
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_smart_bitmatrix_to_schedule");
+-    desc->jerasure_smart_bitmatrix_to_schedule = func_handle.matrixschedulep;
+-    if (NULL == desc->jerasure_smart_bitmatrix_to_schedule) {
+-        goto error; 
+-    }
+-    
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_make_decoding_bitmatrix");
+-    desc->jerasure_make_decoding_bitmatrix = func_handle.decodematrixp;
+-    if (NULL == desc->jerasure_make_decoding_bitmatrix) {
+-        goto error; 
+-    }
+-    
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_bitmatrix_dotprod");
+-    desc->jerasure_bitmatrix_dotprod = func_handle.dotprodp;
+-    if (NULL == desc->jerasure_bitmatrix_dotprod) {
+-        goto error; 
+-    }
+-  
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_erasures_to_erased");
+-    desc->jerasure_erasures_to_erased = func_handle.erasedp;
+-    if (NULL == desc->jerasure_erasures_to_erased) {
+-        goto error; 
+-    } 
+-
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "galois_uninit_field");
+-    desc->galois_uninit_field = func_handle.uninitp;
+-    if (NULL == desc->galois_uninit_field) {
+-        goto error;
+-    }
++    desc->jerasure_bitmatrix_encode = jerasure_bitmatrix_encode;
++    desc->jerasure_bitmatrix_decode = jerasure_bitmatrix_decode;
++    desc->cauchy_original_coding_matrix = cauchy_original_coding_matrix;
++    desc->jerasure_matrix_to_bitmatrix = jerasure_matrix_to_bitmatrix;
++    desc->jerasure_smart_bitmatrix_to_schedule = jerasure_smart_bitmatrix_to_schedule;
++    desc->jerasure_make_decoding_bitmatrix = jerasure_make_decoding_bitmatrix;
++    desc->jerasure_bitmatrix_dotprod = jerasure_bitmatrix_dotprod;
++    desc->jerasure_erasures_to_erased = jerasure_erasures_to_erased;
++    desc->galois_uninit_field = (galois_uninit_field_func)galois_uninit_field;
+ 
+     /* setup the Cauchy matrices and schedules */
+     desc->matrix = desc->cauchy_original_coding_matrix(k, m, w);
+diff --git a/src/backends/jerasure/jerasure_rs_vand.c b/src/backends/jerasure/jerasure_rs_vand.c
+index 9395046..143e00f 100644
+--- a/src/backends/jerasure/jerasure_rs_vand.c
++++ b/src/backends/jerasure/jerasure_rs_vand.c
+@@ -28,6 +28,8 @@
+ 
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <jerasure.h>
++#include <reed_sol.h>
+ 
+ #include "erasurecode.h"
+ #include "erasurecode_backend.h"
+@@ -232,98 +234,40 @@ static void * jerasure_rs_vand_init(struct ec_backend_args *args,
+         }
+      }
+ 
+-     /*
+-     * ISO C forbids casting a void* to a function pointer.
+-     * Since dlsym return returns a void*, we use this union to
+-     * "transform" the void* to a function pointer.
+-     */
+-    union {
+-        reed_sol_vandermonde_coding_matrix_func initp;
+-        galois_uninit_field_func uninitp;
+-        jerasure_matrix_encode_func encodep;
+-        jerasure_matrix_decode_func decodep;
+-        jerasure_make_decoding_matrix_func decodematrixp;
+-        jerasure_erasures_to_erased_func erasep;
+-        jerasure_matrix_dotprod_func dotprodp;
+-        void *vptr;
+-    } func_handle = {.vptr = NULL};
+-
+-
+     /* fill in function addresses */
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_encode");
+-    desc->jerasure_matrix_encode = func_handle.encodep;
+-    if (NULL == desc->jerasure_matrix_encode) {
+-        goto error; 
+-    }
+-  
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_decode");
+-    desc->jerasure_matrix_decode = func_handle.decodep;
+-    if (NULL == desc->jerasure_matrix_decode) {
+-        goto error; 
+-    }
+-  
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_make_decoding_matrix");
+-    desc->jerasure_make_decoding_matrix = func_handle.decodematrixp;
+-    if (NULL == desc->jerasure_make_decoding_matrix) {
+-        goto error; 
+-    }
+-  
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_dotprod");
+-    desc->jerasure_matrix_dotprod = func_handle.dotprodp;
+-    if (NULL == desc->jerasure_matrix_dotprod) {
+-        goto error; 
+-    }
+-  
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "jerasure_erasures_to_erased");
+-    desc->jerasure_erasures_to_erased = func_handle.erasep;
+-    if (NULL == desc->jerasure_erasures_to_erased) {
+-        goto error; 
+-    }
+- 
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "reed_sol_vandermonde_coding_matrix");
+-    desc->reed_sol_vandermonde_coding_matrix = func_handle.initp;
+-    if (NULL == desc->reed_sol_vandermonde_coding_matrix) {
+-        goto error; 
+-    }
+-
+-    func_handle.vptr = NULL;
+-    func_handle.vptr = dlsym(backend_sohandle, "galois_uninit_field");
+-    desc->galois_uninit_field = func_handle.uninitp;
+-    if (NULL == desc->galois_uninit_field) {
+-        goto error;
+-    }
++    desc->jerasure_matrix_encode = jerasure_matrix_encode;
++    desc->jerasure_matrix_decode = jerasure_matrix_decode;
++    desc->jerasure_make_decoding_matrix = jerasure_make_decoding_matrix;
++    desc->jerasure_matrix_dotprod = jerasure_matrix_dotprod;
++    desc->jerasure_erasures_to_erased = jerasure_erasures_to_erased;
++    desc->reed_sol_vandermonde_coding_matrix = reed_sol_vandermonde_coding_matrix;
++    desc->galois_uninit_field = (galois_uninit_field_func)galois_uninit_field;
+ 
+     desc->matrix = desc->reed_sol_vandermonde_coding_matrix(
+             desc->k, desc->m, desc->w);
+     if (NULL == desc->matrix) {
+-        goto error; 
++        goto error;
+     }
+ 
+     return desc;
+ 
+ error:
+     free(desc);
+-    
++
+     return NULL;
+ }
+ 
+ /**
+- * Return the element-size, which is the number of bits stored 
+- * on a given device, per codeword.  For Vandermonde, this is 
+- * 'w'.  For somthing like cauchy, this is packetsize * w. 
+- * 
++ * Return the element-size, which is the number of bits stored
++ * on a given device, per codeword.  For Vandermonde, this is
++ * 'w'.  For somthing like cauchy, this is packetsize * w.
++ *
+  * Returns the size in bits!
+  */
+ static int
+ jerasure_rs_vand_element_size(void* desc)
+ {
+-    struct jerasure_rs_vand_descriptor *jerasure_desc = 
++    struct jerasure_rs_vand_descriptor *jerasure_desc =
+         (struct jerasure_rs_vand_descriptor*)desc;
+ 
+     /* Note that cauchy will return pyeclib_handle->w * PYECC_CAUCHY_PACKETSIZE * 8 */
+diff --git a/src/erasurecode.c b/src/erasurecode.c
+index fb6d5de..4c3d024 100644
+--- a/src/erasurecode.c
++++ b/src/erasurecode.c
+@@ -177,6 +177,9 @@ void* liberasurecode_backend_open(ec_backend_t instance)
+ {
+     if (NULL == instance)
+         return NULL;
++    if (strncmp(instance->common.soname, "libJerasure", 11) == 0)
++        return (void *)-1;
++
+     /* Use RTLD_LOCAL to avoid symbol collisions */
+     return dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
+ }
+@@ -186,6 +189,9 @@ int liberasurecode_backend_close(ec_backend_t instance)
+     if (NULL == instance || NULL == instance->desc.backend_sohandle)
+         return 0;
+ 
++    if (strncmp(instance->common.soname, "libJerasure", 11) == 0)
++        return 0;
++
+     dlclose(instance->desc.backend_sohandle);
+     dlerror();    /* Clear any existing errors */
+ 
+diff --git a/src/utils/chksum/alg_sig.c b/src/utils/chksum/alg_sig.c
+index 86740e6..bee5fca 100644
+--- a/src/utils/chksum/alg_sig.c
++++ b/src/utils/chksum/alg_sig.c
+@@ -27,52 +27,27 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#define GALOIS_SINGLE_MULTIPLY "galois_single_multiply"
+-#define GALOIS_UNINIT "galois_uninit_field"
++#include <jerasure.h>
++#define GALOIS_SINGLE_MULTIPLY galois_single_multiply
++#define GALOIS_UNINIT galois_uninit_field
+ 
+ int valid_gf_w[] = { 8, 16, -1 };
+ int valid_pairs[][2] = { { 8, 32}, {16, 32}, {16, 64}, {-1, -1} };
+ 
+-galois_single_multiply_func get_galois_multi_func(void *handle) {
+-    /*
+-     * ISO C forbids casting a void* to a function pointer.
+-     * Since dlsym return returns a void*, we use this union to
+-     * "transform" the void* to a function pointer.
+-     */
+-    union {
+-        galois_single_multiply_func fptr;
+-        void *vptr;
+-    } func_handle = {.vptr = NULL};
+-    func_handle.vptr = dlsym(handle,  GALOIS_SINGLE_MULTIPLY);
+-    return func_handle.fptr;
++galois_single_multiply_func get_galois_multi_func() {
++    return (galois_single_multiply_func)GALOIS_SINGLE_MULTIPLY;
+ }
+ 
+ void stub_galois_uninit_field(int w){}
+ 
+-galois_uninit_field_func get_galois_uninit_func(void *handle) {
+-    /*
+-     * ISO C forbids casting a void* to a function pointer.
+-     * Since dlsym return returns a void*, we use this union to
+-     * "transform" the void* to a function pointer.
+-     */
+-    union {
+-        galois_uninit_field_func fptr;
+-        void *vptr;
+-    } func_handle = {.vptr = NULL};
+-    func_handle.vptr = dlsym(handle,  GALOIS_UNINIT);
+-    return func_handle.fptr;
+-}
+-
+-
+-void *get_jerasure_sohandle()
+-{
+-    return dlopen(JERASURE_SONAME, RTLD_LAZY | RTLD_LOCAL);
++galois_uninit_field_func get_galois_uninit_func() {
++    return (galois_uninit_field_func)GALOIS_UNINIT;
+ }
+ 
+-int load_gf_functions(void *sohandle, struct jerasure_mult_routines *routines)
++int load_gf_functions(struct jerasure_mult_routines *routines)
+ {
+-    routines->galois_single_multiply = get_galois_multi_func(sohandle);
+-    routines->galois_uninit_field = get_galois_uninit_func(sohandle);
++    routines->galois_single_multiply = get_galois_multi_func();
++    routines->galois_uninit_field = get_galois_uninit_func();
+     if (NULL == routines->galois_single_multiply) {
+       return -1;
+     }
+@@ -93,7 +68,7 @@ int load_gf_functions(void *sohandle, struct jerasure_mult_routines *routines)
+ }
+ 
+ static
+-alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
++alg_sig_t *init_alg_sig_w8(int sig_len)
+ {
+     alg_sig_t *alg_sig_handle;
+     int num_gf_lr_table_syms;
+@@ -107,9 +82,7 @@ alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
+       return NULL;
+     }
+ 
+-    alg_sig_handle->jerasure_sohandle = jerasure_sohandle;
+-
+-    if (load_gf_functions(alg_sig_handle->jerasure_sohandle, &(alg_sig_handle->mult_routines)) < 0) {
++    if (load_gf_functions(&(alg_sig_handle->mult_routines)) < 0) {
+       free(alg_sig_handle);
+       return NULL;
+     }
+@@ -150,7 +123,7 @@ alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
+ }
+ 
+ static
+-alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
++alg_sig_t *init_alg_sig_w16(int sig_len)
+ {
+     alg_sig_t *alg_sig_handle;
+     int num_gf_lr_table_syms;
+@@ -159,18 +132,12 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
+     int alpha = 2, beta = 4, gamma = 8;
+     int num_components = sig_len / w;
+ 
+-    if (NULL == jerasure_sohandle) {
+-        return NULL;
+-    }
+-    
+     alg_sig_handle = (alg_sig_t *)malloc(sizeof(alg_sig_t));
+     if (NULL == alg_sig_handle) {
+       return NULL;
+     }
+ 
+-    alg_sig_handle->jerasure_sohandle = jerasure_sohandle;
+-
+-    if (load_gf_functions(alg_sig_handle->jerasure_sohandle, &(alg_sig_handle->mult_routines)) < 0) {
++    if (load_gf_functions(&(alg_sig_handle->mult_routines)) < 0) {
+       free(alg_sig_handle);
+       return NULL;
+     }
+@@ -216,15 +183,9 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
+ alg_sig_t *init_alg_sig(int sig_len, int gf_w)
+ {
+   int i=0;
+-  void *jerasure_sohandle = get_jerasure_sohandle();
+-
+-  if (NULL == jerasure_sohandle) {
+-    fprintf (stderr, "Could not open Jerasure backend.  Install Jerasure or fix LD_LIBRARY_PATH.  Passing.\n");
+-    return NULL;
+-  }
+ 
+   while (valid_pairs[i][0] > -1) {
+-    if (gf_w == valid_pairs[i][0] && 
++    if (gf_w == valid_pairs[i][0] &&
+         sig_len == valid_pairs[i][1]) {
+       break;
+     }
+@@ -236,9 +197,9 @@ alg_sig_t *init_alg_sig(int sig_len, int gf_w)
+   }
+ 
+   if (gf_w == 8) {
+-    return init_alg_sig_w8(jerasure_sohandle, sig_len);
++    return init_alg_sig_w8(sig_len);
+   } else if (gf_w == 16) {
+-    return init_alg_sig_w16(jerasure_sohandle, sig_len);
++    return init_alg_sig_w16(sig_len);
+   }
+   return NULL;
+ }
+@@ -254,7 +215,6 @@ void destroy_alg_sig(alg_sig_t* alg_sig_handle)
+   }
+ 
+   alg_sig_handle->mult_routines.galois_uninit_field(alg_sig_handle->gf_w);
+-  dlclose(alg_sig_handle->jerasure_sohandle);
+ 
+   int num_components = alg_sig_handle->sig_len / alg_sig_handle->gf_w;
+ 
