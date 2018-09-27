@@ -15,7 +15,9 @@ git checkout a6862d1
 ./autogen.sh
 ./configure --disable-shared --with-pic
 make install
-ldconfig
+if [ "$(uname)" != "Darwin" ]; then
+    ldconfig
+fi
 cd ../
 
 #
@@ -36,7 +38,13 @@ git clone https://github.com/openstack/liberasurecode.git
 cd liberasurecode/
 git checkout 1.5.0
 ./autogen.sh
-CFLAGS="-I$PWD/../jerasure/include" LIBS="-lJerasure" LDFLAGS="-L/usr/local/lib" ./configure --disable-shared --with-pic
+CFLAGS="-I$PWD/../jerasure/include"
+if [ "$(uname)" == "Darwin" ]; then
+    CFLAGS="$CFLAGS -Wno-error=address-of-packed-member"
+fi
+CFLAGS=$CFLAGS LIBS="-lJerasure" LDFLAGS="-L/usr/local/lib" ./configure --disable-shared --with-pic
 patch -p1 < ../liberasurecode.patch # Applies a patch for building static library
 make install
-ldconfig
+if [ "$(uname)" != "Darwin" ]; then
+    ldconfig
+fi
