@@ -1,7 +1,7 @@
 use std::env;
 use std::fs;
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
@@ -17,6 +17,7 @@ fn main() {
 
     match Command::new("./install_deps.sh")
         .current_dir(&build_dir)
+        .stderr(Stdio::inherit())
         .output()
     {
         Err(e) => {
@@ -25,9 +26,8 @@ fn main() {
         Ok(output) => {
             if !output.status.success() {
                 panic!(
-                    "./install_deps.sh failed: exit-code={:?}\n{}",
-                    output.status.code(),
-                    String::from_utf8_lossy(&output.stderr)
+                    "./install_deps.sh failed: exit-code={:?}",
+                    output.status.code()
                 );
             }
         }
