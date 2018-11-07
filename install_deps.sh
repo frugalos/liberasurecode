@@ -5,9 +5,10 @@ set -eux
 BUILD_DIR=$PWD
 MAKE_FLAGS=""
 
-# Currently only Linux is supported.
+# Please try and add other distributions.
 case "$(uname)" in
     "Linux") MAKE_FLAGS="-j$(nproc)";;
+    "Darwin") MAKE_FLAGS="-j$(sysctl -n hw.ncpu)"
 esac
 
 #
