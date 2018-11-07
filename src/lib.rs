@@ -273,11 +273,20 @@ impl ErasureCoder {
     }
 
     /// Reconstructs the fragment specified by the given index from other available fragments.
+    ///
+    /// # Errors
+    ///
+    /// This function will return `Error::InvalidParams` if the given index is bigger or equal
+    /// than the total number of parity_fragments and data_fragments.
     pub fn reconstruct<T, F>(&mut self, index: usize, available_fragments: T) -> Result<Vec<u8>>
     where
         T: Iterator<Item = F>,
         F: AsRef<[u8]>,
     {
+        if index >= self.fragments().get() {
+            return Err(Error::InvalidParams);
+        }
+
         let fragments = available_fragments.collect::<Vec<_>>();
         let fragments = fragments.iter().map(|x| x.as_ref()).collect::<Vec<_>>();
         c_api::reconstruct_fragment(self.desc, &fragments[..], index)
@@ -354,6 +363,23 @@ mod tests {
                 Ok(encoded[i].clone())
             );
         }
+    }
+
+    #[test]
+    fn reconstruct_fails() {
+        let mut coder = ErasureCoder::new(non_zero(4), non_zero(4)).unwrap();
+        let data = vec![0, 1, 2, 3];
+        let encoded = coder.encode(&data).unwrap();
+
+        assert!(coder.reconstruct(7, encoded.iter()).is_ok());
+        assert_eq!(
+            coder.reconstruct(8, encoded.iter()),
+            Err(Error::InvalidParams)
+        );
+        assert_eq!(
+            coder.reconstruct(9, encoded.iter()),
+            Err(Error::InvalidParams)
+        );
     }
 
     #[test]
