@@ -171,10 +171,6 @@ impl Builder {
                     parity_fragments: self.parity_fragments,
                     desc,
                 }).map_err(Error::from_error_code)?;
-
-            // `SIGSEGV` may be raised if encodings are executed (in parallel) immediately after creation.
-            // To prevent it, sleeps the current thread for a little while.
-            std::thread::sleep(Duration::from_millis(10));
             Ok(coder)
         })
     }
