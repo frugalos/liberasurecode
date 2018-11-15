@@ -29,8 +29,9 @@ git clone https://github.com/frugalos/jerasure.git
 cd jerasure/
 git checkout c9851639f4830e516e48797832ec30fe82a43e28
 autoreconf --force --install
-CFLAGS="-I${BUILD_DIR}/include" LDFLAGS="-L${BUILD_DIR}/lib" ./configure --disable-shared --enable-static --with-pic --prefix $BUILD_DIR
+CFLAGS="-I${BUILD_DIR}/include" LDFLAGS="-L${BUILD_DIR}/lib" ./configure --enable-shared --enable-static --with-pic --prefix $BUILD_DIR
 make $MAKE_FLAGS install
+ldconfig
 cd ../
 
 #
