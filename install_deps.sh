@@ -44,5 +44,9 @@ CFLAGS="-I${BUILD_DIR}/jerasure/include -I${BUILD_DIR}/include"
 if [ "$(uname)" == "Darwin" ]; then
     CFLAGS="$CFLAGS -Wno-error=address-of-packed-member"
 fi
+<<<<<<< HEAD
 CFLAGS=$CFLAGS LDFLAGS="-L${BUILD_DIR}/lib" ./configure --disable-shared --with-pic --prefix $BUILD_DIR
+=======
+CFLAGS=$CFLAGS LIBS="-lJerasure" LDFLAGS="-L${BUILD_DIR}/lib" ./configure --disable-shared --with-pic --prefix $BUILD_DIR
+>>>>>>> d318ebdd469e8868cc7300d310cb8c821e75dc4c
 make $MAKE_FLAGS install
