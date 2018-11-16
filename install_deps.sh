@@ -27,11 +27,10 @@ cd ../
 #
 git clone https://github.com/frugalos/jerasure.git
 cd jerasure/
-git checkout c9851639f4830e516e48797832ec30fe82a43e28
+git checkout threadsafe
 autoreconf --force --install
 CFLAGS="-I${BUILD_DIR}/include" LDFLAGS="-L${BUILD_DIR}/lib" ./configure --enable-shared --enable-static --with-pic --prefix $BUILD_DIR
 make $MAKE_FLAGS install
-ldconfig
 cd ../
 
 #
@@ -39,7 +38,7 @@ cd ../
 #
 git clone https://github.com/frugalos/openstack_liberasurecode.git
 cd openstack_liberasurecode/
-git checkout 240333686eeae71ea1b94669242a8a6f4f51e260
+git checkout threadsafe
 ./autogen.sh
 CFLAGS="-I${BUILD_DIR}/jerasure/include -I${BUILD_DIR}/include"
 if [ "$(uname)" == "Darwin" ]; then
