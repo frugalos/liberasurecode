@@ -48,7 +48,6 @@ extern crate libc;
 
 use std::num::NonZeroUsize;
 use std::slice;
-use std::time::Duration;
 
 pub use result::{Error, Result};
 
@@ -291,7 +290,9 @@ impl ErasureCoder {
 }
 impl Drop for ErasureCoder {
     fn drop(&mut self) {
-        let _ = c_api::instance_destroy(self.desc);
+        with_global_lock(|| {
+            let _ = c_api::instance_destroy(self.desc);
+        })
     }
 }
 

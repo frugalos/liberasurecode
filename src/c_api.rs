@@ -43,10 +43,10 @@ pub const EINVALIDPARAMS: u32 = 206;
 pub const EBADHEADER: u32 = 207;
 pub const EINSUFFFRAGS: u32 = 208;
 
-#[link(name = "erasurecode", kind = "static")]
-#[link(name = "gf_complete", kind = "static")]
-#[link(name = "Jerasure", kind = "static")]
-#[link(name = "Xorcode", kind = "static")]
+#[link(name = "erasurecode")]
+#[link(name = "gf_complete")]
+#[link(name = "Jerasure")]
+#[link(name = "Xorcode")]
 extern "C" {
     /// Create a liberasurecode instance and return a descriptor
     /// for use with EC operations (encode, decode, reconstruct)
