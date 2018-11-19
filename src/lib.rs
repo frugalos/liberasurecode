@@ -62,6 +62,9 @@ pub enum Backend {
 
     /// Cauchy base Read-Solomon erasure coding provided by `jerasure` library (default).
     JerasureRsCauchy,
+
+    /// Read-Solomon erasure coding built-in `openstack/liberasurecode`.
+    LibErasureCodeRsVand,
 }
 impl Default for Backend {
     /// `Backend::JerasureRsCauchy`を返す.
@@ -142,6 +145,7 @@ impl Builder {
         let backend_id = match self.backend {
             Backend::JerasureRsCauchy => c_api::EcBackendId::JERASURE_RS_CAUCHY,
             Backend::JerasureRsVand => c_api::EcBackendId::JERASURE_RS_VAND,
+            Backend::LibErasureCodeRsVand => c_api::EcBackendId::LIBERASURECODE_RS_VAND,
         };
         let checksum_type = match self.checksum {
             Checksum::None => c_api::EcChecksumType::NONE,
@@ -381,7 +385,13 @@ mod tests {
 
     #[test]
     fn various_params() {
-        for backend in [Backend::JerasureRsCauchy, Backend::JerasureRsVand].iter() {
+        for backend in [
+            Backend::JerasureRsCauchy,
+            Backend::JerasureRsVand,
+            Backend::LibErasureCodeRsVand,
+        ]
+            .iter()
+        {
             for checksum in [Checksum::None, Checksum::Crc32, Checksum::Md5].iter() {
                 for data_fragments in (3..6).map(non_zero) {
                     for parity_fragments in (1..4).map(non_zero) {
