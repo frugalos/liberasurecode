@@ -16,7 +16,8 @@ fn main() {
     }
 
     // the path to target/(profile)/
-    let target = build_dir.parent().unwrap().parent().unwrap().parent().unwrap().parent().unwrap();
+    let manifest = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
+    let target = manifest.join("target").join(env::var_os("PROFILE").unwrap());
     match Command::new("./install_deps.sh")
         .args(&[target.to_str().unwrap()])
         .current_dir(&build_dir)
