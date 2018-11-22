@@ -48,7 +48,6 @@ extern crate libc;
 
 use std::num::NonZeroUsize;
 use std::slice;
-use std::time::Duration;
 
 pub use result::{Error, Result};
 
