@@ -3,6 +3,7 @@
 set -eux
 
 BUILD_DIR=$PWD
+
 MAKE_FLAGS=""
 
 # Please try and add other distributions.
@@ -46,3 +47,10 @@ if [ "$(uname)" == "Darwin" ]; then
 fi
 CFLAGS=$CFLAGS LDFLAGS="-L${BUILD_DIR}/lib" ./configure --disable-shared --with-pic --prefix $BUILD_DIR
 make $MAKE_FLAGS install
+
+# copy dependencies to the path where be predicatable for others 
+if [ $# -ne 0 ]; then
+TARGET=$1
+mkdir -p $TARGET/lib
+for solib in $BUILD_DIR/lib/*.so* ; do cp $solib $TARGET/lib ; done
+fi

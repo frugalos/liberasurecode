@@ -11,11 +11,14 @@ fn main() {
     let _ = fs::remove_dir_all(&build_dir);
     fs::create_dir(&build_dir).unwrap();
 
-    for file in &["install_deps.sh", "liberasurecode.patch"] {
+    for file in &["install_deps.sh"] {
         fs::copy(file, build_dir.join(file)).unwrap();
     }
 
+    // the path to target/(profile)/
+    let target = build_dir.parent().unwrap().parent().unwrap().parent().unwrap().parent().unwrap();
     match Command::new("./install_deps.sh")
+        .args(&[target.to_str().unwrap()])
         .current_dir(&build_dir)
         .stderr(Stdio::inherit())
         .output()
