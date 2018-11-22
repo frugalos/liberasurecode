@@ -9,7 +9,7 @@ before_script:
   - rustup component add clippy-preview
 
 script:
-  - cargo test -- --test-threads=1
+  - cargo test
   - cargo clippy
 
 matrix:
