@@ -2,8 +2,8 @@
 name = "liberasurecode"
 version = "1.0.2"
 authors = ["The FrugalOS Developers"]
-links = "erasurecode"
-build = "build.rs"
+# links = "erasurecode"
+# build = "build.rs"
 description = "A Rust wrapper for `openstack/liberasurecode`"
 homepage = "https://github.com/frugalos/liberasurecode"
 repository = "https://github.com/frugalos/liberasurecode"
