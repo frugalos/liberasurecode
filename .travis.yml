@@ -6,6 +6,7 @@ rust:
   - nightly
 
 before_script:
+  - ./install_dependent_libraries.sh
   - rustup component add clippy-preview
 
 script:
@@ -19,4 +20,6 @@ matrix:
 
 env:
   global:
-  - RUSTFLAGS="-D warnings"
+    - FRUGALOS_DIR=$TRAVIS_BUILD_DIR/frugalos_working_dir
+    - LD_LIBRARY_PATH=$FRUGALOS_DIR/lib
+    - RUSTFLAGS="-D warnings"
