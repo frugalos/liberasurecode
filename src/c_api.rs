@@ -45,7 +45,7 @@ pub const EINSUFFFRAGS: u32 = 208;
 
 #[link(name = "erasurecode")]
 #[link(name = "gf_complete")]
-#[link(name = "Jerasure")]
+#[link(name = "FrugalosJerasure")]
 #[link(name = "Xorcode")]
 extern "C" {
     /// Create a liberasurecode instance and return a descriptor
