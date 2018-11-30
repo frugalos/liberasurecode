@@ -25,7 +25,7 @@ cd ../
 #
 # jerasure
 #
-git clone -b threadsafe https://github.com/frugalos/jerasure.git
+git clone -b frugalos_dyn https://github.com/frugalos/jerasure.git
 cd jerasure/
 autoreconf --force --install
 CFLAGS="-I${BUILD_DIR}/include" LDFLAGS="-L${BUILD_DIR}/lib" ./configure --with-pic --prefix $BUILD_DIR
@@ -35,7 +35,7 @@ cd ../
 #
 # liberasurecode
 #
-git clone -b threadsafe https://github.com/frugalos/openstack_liberasurecode.git
+git clone -b frugalos_dyn https://github.com/frugalos/openstack_liberasurecode.git
 cd openstack_liberasurecode/
 ./autogen.sh
 CFLAGS="-I${BUILD_DIR}/jerasure/include -I${BUILD_DIR}/include"
