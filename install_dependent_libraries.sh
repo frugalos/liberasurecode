@@ -4,24 +4,23 @@ set -eux
 
 INSTALL_DIR=""
 
-if [ $# -eq 1 ]
+if [ -z $FRUGALOS_DIR ]
 then
-    INSTALL_DIR=$1
-else
-    echo "This script file requires a single argument where we install dependent libraries"
-    exit 1
+   echo "Please set the environment FRUGALOS_DIR to install auxiliary artifacts."
+   exit 1
 fi
+
+INSTALL_DIR=$FRUGALOS_DIR
 
 case $INSTALL_DIR in
     /*)
-	echo "We install dependent libraries into $INSTALL_DIR."
+	echo "We install dependent artifacts into FRUGALOS_DIR=$FRUGALOS_DIR"
 	;;
     *)
 	echo "You passed a relative path. Please use an absolute path."
 	exit 1
 	;;
 esac
-	
 
 MAKE_FLAGS=""
 
@@ -48,7 +47,7 @@ cd ../..
 #
 # jerasure
 #
-git clone -b threadsafe https://github.com/frugalos/jerasure.git $BUILD_DIR/jerasure
+git clone -b frugalos_dyn https://github.com/frugalos/jerasure.git $BUILD_DIR/jerasure
 cd $BUILD_DIR/jerasure
 autoreconf --force --install
 CFLAGS="-I${INSTALL_DIR}/include" LDFLAGS="-L${INSTALL_DIR}/lib" ./configure --with-pic --prefix $INSTALL_DIR
@@ -58,7 +57,7 @@ cd ../..
 #
 # liberasurecode
 #
-git clone -b threadsafe https://github.com/frugalos/openstack_liberasurecode.git $BUILD_DIR/openstack_liberasurecode
+git clone -b frugalos_dyn https://github.com/frugalos/openstack_liberasurecode.git $BUILD_DIR/openstack_liberasurecode
 cd $BUILD_DIR/openstack_liberasurecode
 ./autogen.sh
 CFLAGS="-I${INSTALL_DIR}/include -I${INSTALL_DIR}/include/jerasure"
