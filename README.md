@@ -29,6 +29,16 @@ For example, on Ubuntu, you can install those by executing the following command
 $ sudo apt install gcc git make automake autoconf libtool
 ```
 
+Before do `cargo build`, please set the two environment variables `FRUGALOS_DIR` and `LD_LIBRARY_PATH`
+```
+FRUGALOS_DIR=/some/path/to/locate/generated/artifacts
+LD_LIBRARY_PATH=$FRUGALOS_DIR/lib
+```
+and do the following shell script to install auxiliary files
+```
+./install_dependent_libraries.sh
+```
+
 
 Examples
 --------
