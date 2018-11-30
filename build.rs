@@ -1,7 +1,4 @@
 use std::env;
-use std::fs;
-use std::path::PathBuf;
-use std::process::{Command, Stdio};
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
