@@ -8,10 +8,11 @@ rust:
   - nightly
 
 before_script:
+  - ./install_dependent_libraries.sh
   - rustup component add clippy-preview
 
 script:
-  - cargo test -- --test-threads=1
+  - cargo test
   - cargo clippy
 
 matrix:
@@ -21,4 +22,6 @@ matrix:
 
 env:
   global:
-  - RUSTFLAGS="-D warnings"
+    - FRUGALOS_DIR=$TRAVIS_BUILD_DIR/frugalos_working_dir
+    - LD_LIBRARY_PATH=$FRUGALOS_DIR/lib
+    - RUSTFLAGS="-D warnings"
