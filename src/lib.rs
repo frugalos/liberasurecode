@@ -170,7 +170,8 @@ impl Builder {
                     data_fragments: self.data_fragments,
                     parity_fragments: self.parity_fragments,
                     desc,
-                }).map_err(Error::from_error_code)?;
+                })
+                .map_err(Error::from_error_code)?;
 
             // `SIGSEGV` may be raised if encodings are executed (in parallel) immediately after creation.
             // To prevent it, sleeps the current thread for a little while.
@@ -263,7 +264,7 @@ impl ErasureCoder {
         if fragments.is_empty() {
             return Err(Error::InsufficientFragments);;
         }
-        let data_fragments = &fragments.iter().map(|x| x.as_ref()).collect::<Vec<_>>()[..];
+        let data_fragments = &fragments.iter().map(AsRef::as_ref).collect::<Vec<_>>()[..];
 
         let (data, data_len) =
             c_api::decode(self.desc, data_fragments, false).map_err(Error::from_error_code)?;
@@ -288,7 +289,7 @@ impl ErasureCoder {
         }
 
         let fragments = available_fragments.collect::<Vec<_>>();
-        let fragments = fragments.iter().map(|x| x.as_ref()).collect::<Vec<_>>();
+        let fragments = fragments.iter().map(AsRef::as_ref).collect::<Vec<_>>();
         c_api::reconstruct_fragment(self.desc, &fragments[..], index)
             .map_err(Error::from_error_code)
     }
