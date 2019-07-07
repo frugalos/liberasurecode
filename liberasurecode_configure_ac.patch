@@ -1,0 +1,16 @@
+diff --git a/configure.ac b/configure.ac
+index 16d4dc4..6614878 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -146,6 +146,11 @@ fi
+ AC_SUBST(GCOV_FLAGS)
+ AC_SUBST(GCOV_LDFLAGS)
+ 
++# Check if a compiler supports "-Wno-error=address-of-packed-member"
++# If it supports the option, we add it to CFLAGS.
++AX_CHECK_COMPILE_FLAG([-Wno-error=address-of-packed-member],
++                      [CFLAGS="${CFLAGS} -Wno-error=address-of-packed-member"])
++
+ dnl Expand the sources and objects needed to build the library
+ AC_SUBST(ac_aux_dir)
+ AC_SUBST(OBJECTS)

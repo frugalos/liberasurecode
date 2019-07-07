@@ -10,15 +10,180 @@ rust:
 before_script:
   - rustup component add clippy-preview
 
+before_install:
+  - echo "MATRIX_EVAL=${MATRIX_EVAL}"
+  - echo "CC=$CC"
+  - echo "CXX=$CXX"
+  - eval "${MATRIX_EVAL}"
+
 script:
   - cargo test -- --test-threads=1
   - cargo clippy
+
+env:
+  global:
+  - RUSTFLAGS="-D warnings"
+
+addons:
+  apt:
+    packages:
+      - make
+      - autoconf
+      - autoconf-archive # for AX_CHECK_COMPILE_FLAG
+      - automake
+      - libtool
+  homebrew:
+    update: true
+    packages:
+      - make
+      - autoconf
+      - autoconf-archive
+      - automake
+      - libtool
 
 matrix:
   allow_failures:
     - rust: beta
     - rust: nightly
-
-env:
-  global:
-  - RUSTFLAGS="-D warnings"
+  include:
+    # GCC on Linux
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.8
+            - make
+            - autoconf
+            - autoconf-archive
+            - automake
+            - libtool
+      env:
+         - MATRIX_EVAL="CC=gcc-4.8 CXX=g++-4.8"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+            - make
+            - autoconf
+            - autoconf-archive
+            - automake
+            - libtool
+      env:
+         - MATRIX_EVAL="CC=gcc-4.9 CXX=g++-4.9"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-9
+            - make
+            - autoconf
+            - autoconf-archive
+            - automake
+            - libtool
+      env:
+        - MATRIX_EVAL="CC=gcc-9 CXX=g++-9"
+    # Clang on Linux
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-xenial-4.0
+          packages:
+            - clang-4.0
+            - make
+            - autoconf
+            - autoconf-archive
+            - automake
+            - libtool
+      env:
+        - MATRIX_EVAL="CC=clang-4.0 CXX=clang++-4.0"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-xenial-5.0
+          packages:
+            - clang-5.0
+            - make
+            - autoconf
+            - autoconf-archive
+            - automake
+            - libtool
+      env:
+        - MATRIX_EVAL="CC=clang-5.0 CXX=clang++-5.0"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-xenial-6.0
+          packages:
+            - clang-6.0
+            - make
+            - autoconf
+            - autoconf-archive
+            - automake
+            - libtool
+      env:
+        - MATRIX_EVAL="CC=clang-6.0 CXX=clang++-6.0"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: 'deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main'
+              key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+          packages:
+            - clang-7
+            - make
+            - autoconf
+            - autoconf-archive
+            - automake
+            - libtool
+      env:
+        - MATRIX_EVAL="CC=clang-7 CXX=clang++-7"
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - sourceline: 'deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main'
+              key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+          packages:
+            - clang-8
+            - make
+            - autoconf
+            - autoconf-archive
+            - automake
+            - libtool
+      env:
+        - MATRIX_EVAL="CC=clang-8 CXX=clang++-8"
+    # Clang on macOS
+    - os: osx
+      osx_image: xcode10.2
+    - os: osx
+      osx_image: xcode9.4
+    - os: osx
+      osx_image: xcode8
+    # GCC on macOS
+    - os: osx
+      osx_image: xcode8
+      env:
+        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+    - os: osx
+      osx_image: xcode9.4
+      env:
+        - MATRIX_EVAL="brew install gcc && CC=gcc-8 && CXX=g++-8"
+    - os: osx
+      osx_image: xcode9.4
+      env:
+        - MATRIX_EVAL="brew install gcc && CC=gcc-9 && CXX=g++-9"

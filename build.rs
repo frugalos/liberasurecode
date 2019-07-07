@@ -14,7 +14,7 @@ fn main() {
     for file in &[
         "install_deps.sh",
         "liberasurecode.patch",
-        "for_darwin_to_detect_compiler_flag.patch",
+        "liberasurecode_configure_ac.patch",
     ] {
         fs::copy(file, build_dir.join(file)).unwrap();
     }
