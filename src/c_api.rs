@@ -45,6 +45,7 @@ pub const EINSUFFFRAGS: u32 = 208;
 
 #[link(name = "erasurecode", kind = "static")]
 #[link(name = "gf_complete", kind = "static")]
+#[link(name = "z", kind = "static")]
 #[link(name = "Jerasure", kind = "static")]
 #[link(name = "Xorcode", kind = "static")]
 extern "C" {
