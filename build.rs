@@ -11,7 +11,11 @@ fn main() {
     let _ = fs::remove_dir_all(&build_dir);
     fs::create_dir(&build_dir).unwrap();
 
-    for file in &["install_deps.sh", "liberasurecode.patch"] {
+    for file in &[
+        "install_deps.sh",
+        "liberasurecode.patch",
+        "for_darwin_to_detect_compiler_flag.patch",
+    ] {
         fs::copy(file, build_dir.join(file)).unwrap();
     }
 

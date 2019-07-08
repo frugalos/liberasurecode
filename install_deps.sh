@@ -39,11 +39,13 @@ cd ../
 git clone https://github.com/openstack/liberasurecode.git
 cd liberasurecode/
 git checkout 1.5.0
+if [ "$(uname)" == "Darwin" ]; then
+    # if the compiler has the feature to check `address-of-packed-member`, we suppress it.
+    # it is only annoying for liberasurecode v1.5.0.
+    patch -p1 < ../for_darwin_to_detect_compiler_flag.patch
+fi
 ./autogen.sh
 CFLAGS="-I${BUILD_DIR}/jerasure/include -I${BUILD_DIR}/include"
-if [ "$(uname)" == "Darwin" ]; then
-    CFLAGS="$CFLAGS -Wno-error=address-of-packed-member"
-fi
 CFLAGS=$CFLAGS LIBS="-lJerasure" LDFLAGS="-L${BUILD_DIR}/lib" ./configure --disable-shared --with-pic --prefix $BUILD_DIR
 patch -p1 < ../liberasurecode.patch # Applies a patch for building static library
 make $MAKE_FLAGS install
