@@ -11,9 +11,6 @@ before_script:
   - rustup component add clippy-preview
 
 before_install:
-  - echo "MATRIX_EVAL=${MATRIX_EVAL}"
-  - echo "CC=$CC"
-  - echo "CXX=$CXX"
   - eval "${MATRIX_EVAL}"
 
 script:
