@@ -4,6 +4,8 @@ set -eux
 
 BUILD_DIR=$PWD
 MAKE_FLAGS=""
+export CPATH="${BUILD_DIR}/include:${BUILD_DIR}/include/jerasure:${CPATH:-}"
+export LIBRARY_PATH="${BUILD_DIR}/lib:${LIBRARY_PATH:-}"
 
 # Please try and add other distributions.
 case "$(uname)" in
@@ -29,7 +31,7 @@ git clone https://github.com/ceph/jerasure.git
 cd jerasure/
 git checkout de1739c
 autoreconf --force --install
-CFLAGS="-I${BUILD_DIR}/include" LDFLAGS="-L${BUILD_DIR}/lib" ./configure --disable-shared --enable-static --with-pic --prefix $BUILD_DIR
+./configure --disable-shared --enable-static --with-pic --prefix $BUILD_DIR
 make $MAKE_FLAGS install
 cd ../
 
@@ -45,7 +47,6 @@ if [ "$(uname)" == "Darwin" ]; then
     patch -p1 < ../for_darwin_to_detect_compiler_flag.patch
 fi
 ./autogen.sh
-CFLAGS="-I${BUILD_DIR}/jerasure/include -I${BUILD_DIR}/include"
-CFLAGS=$CFLAGS LIBS="-lJerasure" LDFLAGS="-L${BUILD_DIR}/lib" ./configure --disable-shared --with-pic --prefix $BUILD_DIR
+LIBS="-lJerasure" ./configure --disable-shared --with-pic --prefix $BUILD_DIR
 patch -p1 < ../liberasurecode.patch # Applies a patch for building static library
 make $MAKE_FLAGS install
