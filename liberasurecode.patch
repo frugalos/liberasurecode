@@ -11,7 +11,7 @@ index 52554a9..0a6863d 100644
    int *tbl1_r;
    int *tbl2_l;
 diff --git a/src/backends/jerasure/jerasure_rs_cauchy.c b/src/backends/jerasure/jerasure_rs_cauchy.c
-index 3a0365a..217413d 100644
+index 82d796a..12323c8 100644
 --- a/src/backends/jerasure/jerasure_rs_cauchy.c
 +++ b/src/backends/jerasure/jerasure_rs_cauchy.c
 @@ -28,6 +28,8 @@
@@ -23,7 +23,68 @@ index 3a0365a..217413d 100644
  
  #include "erasurecode.h"
  #include "erasurecode_backend.h"
-@@ -268,87 +270,16 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
+@@ -147,6 +149,7 @@ static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity
+     int *erased = NULL;           /* k+m length list of erased frag ids */
+     int *dm_ids = NULL;           /* k length list of fragment ids */
+     int *decoding_matrix = NULL;  /* matrix for decoding */
++    int *decoding_row_prod = NULL; /* matrix row for decoding parity fragments */
+ 
+     struct jerasure_rs_cauchy_descriptor *jerasure_desc = 
+         (struct jerasure_rs_cauchy_descriptor*) desc;
+@@ -180,26 +183,38 @@ static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity
+             goto out;
+         }
+     } else {
+-        /*
+-         * If it is parity we are reconstructing, then just call decode.
+-         * ToDo (KMG): We can do better than this, but this should perform just
+-         * fine for most cases.  We can adjust the decoding matrix like we
+-         * did with ISA-L.
+-         */
+-        jerasure_desc->jerasure_bitmatrix_decode(k, m, w,
+-                                             jerasure_desc->bitmatrix, 
+-                                             0, 
+-                                             missing_idxs,
+-                                             data, 
+-                                             parity, 
+-                                             blocksize, 
+-                                             PYECC_CAUCHY_PACKETSIZE); 
++        int *decoding_row_orig = jerasure_desc->bitmatrix + k * w * w * (destination_idx - k);
++
++        dm_ids = (int *) alloc_zeroed_buffer(sizeof(int) * k);
++        decoding_matrix = (int *) alloc_zeroed_buffer(sizeof(int *) * k * k * w * w);
++        erased = jerasure_desc->jerasure_erasures_to_erased(k, m, missing_idxs);
++        if (NULL == decoding_matrix || NULL == dm_ids || NULL == erased) {
++            goto out;
++        }
++
++        ret = jerasure_desc->jerasure_make_decoding_bitmatrix(k, m, w,
++                                               jerasure_desc->bitmatrix,
++                                               erased, decoding_matrix, dm_ids);
++        if (ret != 0) {
++          goto out;
++        }
++
++        // Because in the patch jerasure is statically linked, this symbol is visible.
++        decoding_row_prod = jerasure_matrix_multiply(decoding_row_orig, decoding_matrix, w, k * w, k * w, k * w, 1);
++        if (decoding_row_prod == NULL) {
++          ret = -1;
++          goto out;
++        }
++        jerasure_desc->jerasure_bitmatrix_dotprod(k, w,
++                               decoding_row_prod, dm_ids, destination_idx,
++                               data, parity, blocksize, PYECC_CAUCHY_PACKETSIZE);
+     }
+ 
+ out:
+     free(erased);
+     free(decoding_matrix);
+     free(dm_ids);
++    free(decoding_row_prod);
+     
+     return ret;
+ }
+@@ -268,87 +283,16 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
          }
      }
  
@@ -247,7 +308,7 @@ index 9395046..143e00f 100644
  
      /* Note that cauchy will return pyeclib_handle->w * PYECC_CAUCHY_PACKETSIZE * 8 */
 diff --git a/src/erasurecode.c b/src/erasurecode.c
-index fb6d5de..4c3d024 100644
+index d4a06c2..f039c44 100644
 --- a/src/erasurecode.c
 +++ b/src/erasurecode.c
 @@ -177,6 +177,9 @@ void* liberasurecode_backend_open(ec_backend_t instance)
