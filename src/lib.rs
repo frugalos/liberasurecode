@@ -367,6 +367,41 @@ mod tests {
     }
 
     #[test]
+    fn reconstruct_works_for_all_fragments() -> Result<()> {
+        let k = 6;
+        let m = 3;
+        let len = 0xc0de;
+        let mut coder = ErasureCoder::new(non_zero(k), non_zero(m)).unwrap();
+        let mut data = vec![0; len];
+        for i in 0..len {
+            data[i] = (i as u8).wrapping_mul(i as u8);
+        }
+        let encoded = coder.encode(&data).unwrap();
+
+        // Exhaustively checks all patterns.
+        for alive in 0usize..1 << (k + m) {
+            // If not exactly k fragments are alive, skip.
+            if alive.count_ones() as usize != k {
+                continue;
+            }
+            let mut fragments = vec![];
+            for i in 0..k + m {
+                if (alive & 1 << i) != 0 {
+                    fragments.push(encoded[i].clone());
+                }
+            }
+            assert_eq!(fragments.len(), k);
+            for index in 0..k + m {
+                if (alive & 1 << index) == 0 {
+                    // if index is not alive, reconstruct it and check the validity.
+                    let reconstructed = coder.reconstruct(index, fragments.iter())?;
+                    assert_eq!(reconstructed, encoded[index]);
+                }
+            }
+        }
+        Ok(())
+    }
+    #[test]
     fn reconstruct_fails() {
         let mut coder = ErasureCoder::new(non_zero(4), non_zero(4)).unwrap();
         let data = vec![0, 1, 2, 3];
