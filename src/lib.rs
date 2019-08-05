@@ -373,8 +373,10 @@ mod tests {
         let len = 0xc0de;
         let mut coder = ErasureCoder::new(non_zero(k), non_zero(m)).unwrap();
         let mut data = vec![0; len];
+        let mut seed: u32 = 0xdeadbeef;
         for i in 0..len {
-            data[i] = (i as u8).wrapping_mul(i as u8);
+            data[i] = (seed >> 16) as u8;
+            seed = seed.wrapping_mul(0x15151).wrapping_add(0x31111111);
         }
         let encoded = coder.encode(&data).unwrap();
 
