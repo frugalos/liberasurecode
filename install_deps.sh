@@ -47,6 +47,6 @@ if [ "$(uname)" == "Darwin" ]; then
     patch -p1 < ../for_darwin_to_detect_compiler_flag.patch
 fi
 ./autogen.sh
-LIBS="-lJerasure" ./configure --disable-shared --with-pic --prefix $BUILD_DIR
+LIBS="-lJerasure -lgf_complete" ./configure --disable-shared --with-pic --prefix $BUILD_DIR
 patch -p1 < ../liberasurecode.patch # Applies a patch for building static library
 make $MAKE_FLAGS install
