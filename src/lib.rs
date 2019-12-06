@@ -262,7 +262,7 @@ impl ErasureCoder {
     /// Decodes the original data from the given fragments.
     pub fn decode<T: AsRef<[u8]>>(&mut self, fragments: &[T]) -> Result<Vec<u8>> {
         if fragments.is_empty() {
-            return Err(Error::InsufficientFragments);;
+            return Err(Error::InsufficientFragments);
         }
         let data_fragments = &fragments.iter().map(AsRef::as_ref).collect::<Vec<_>>()[..];
 
@@ -304,10 +304,10 @@ fn with_global_lock<F, T>(f: F) -> T
 where
     F: FnOnce() -> T,
 {
-    use std::sync::{Mutex, Once, ONCE_INIT};
+    use std::sync::{Mutex, Once};
 
     static mut MUTEX: Option<Mutex<()>> = None;
-    static INIT: Once = ONCE_INIT;
+    static INIT: Once = Once::new();
     INIT.call_once(|| unsafe {
         MUTEX = Some(Mutex::default());
     });

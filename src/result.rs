@@ -92,7 +92,7 @@ impl error::Error for Error {
             Error::Other(_) => "Unknown error",
         }
     }
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         None
     }
 }
