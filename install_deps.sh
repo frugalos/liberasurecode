@@ -20,7 +20,11 @@ git clone https://github.com/ceph/gf-complete.git
 cd gf-complete/
 git checkout a6862d1
 ./autogen.sh
-./configure --disable-shared --with-pic --prefix $BUILD_DIR
+if [[ $DEBUG = true ]]; then
+    ./configure --disable-shared --with-pic --prefix $BUILD_DIR CFLAGS="${CFLAGS:-} -O0 -g"
+else
+    ./configure --disable-shared --with-pic --prefix $BUILD_DIR
+fi
 make $MAKE_FLAGS install
 cd ../
 
@@ -31,7 +35,11 @@ git clone https://github.com/ceph/jerasure.git
 cd jerasure/
 git checkout de1739c
 autoreconf --force --install
-./configure --disable-shared --enable-static --with-pic --prefix $BUILD_DIR
+if [[ $DEBUG = true ]]; then
+    ./configure --disable-shared --enable-static --with-pic --prefix $BUILD_DIR CFLAGS="${CFLAGS:-} -O0 -g"
+else
+    ./configure --disable-shared --enable-static --with-pic --prefix $BUILD_DIR
+fi
 make $MAKE_FLAGS install
 cd ../
 
@@ -47,6 +55,10 @@ if [ "$(uname)" == "Darwin" ]; then
     patch -p1 < ../for_darwin_to_detect_compiler_flag.patch
 fi
 ./autogen.sh
-LIBS="-lJerasure" ./configure --disable-shared --with-pic --prefix $BUILD_DIR
+if [[ $DEBUG = true ]]; then
+    LIBS="-lJerasure" ./configure --disable-shared --with-pic --prefix $BUILD_DIR CFLAGS="${CFLAGS:-} -O0 -g"
+else
+    LIBS="-lJerasure" ./configure --disable-shared --with-pic --prefix $BUILD_DIR
+fi
 patch -p1 < ../liberasurecode.patch # Applies a patch for building static library
 make $MAKE_FLAGS install
