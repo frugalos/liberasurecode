@@ -50,7 +50,7 @@ use std::num::NonZeroUsize;
 use std::slice;
 use std::time::Duration;
 
-pub use result::{Error, Result};
+pub use crate::result::{Error, Result};
 
 mod c_api;
 mod result;
@@ -327,7 +327,7 @@ mod tests {
     use std::num::NonZeroUsize;
 
     use super::*;
-    use result::Error;
+    use crate::result::Error;
 
     #[test]
     fn it_works() {
@@ -374,11 +374,12 @@ mod tests {
         let mut coder = ErasureCoder::new(non_zero(k), non_zero(m)).unwrap();
         let mut data = vec![0; len];
         let mut seed: u32 = 0xdeadbeef;
-        for i in 0..len {
-            data[i] = (seed >> 16) as u8;
+        for item in data.iter_mut() {
+            *item = (seed >> 16) as u8;
             seed = seed.wrapping_mul(0x15151).wrapping_add(0x31111111);
         }
         let encoded = coder.encode(&data).unwrap();
+        assert_eq!(encoded.len(), k + m);
 
         // Exhaustively checks all patterns.
         for alive in 0usize..1 << (k + m) {
@@ -387,17 +388,17 @@ mod tests {
                 continue;
             }
             let mut fragments = vec![];
-            for i in 0..k + m {
-                if (alive & 1 << i) != 0 {
-                    fragments.push(encoded[i].clone());
+            for (index, row) in encoded.iter().enumerate() {
+                if (alive & 1 << index) != 0 {
+                    fragments.push(row.clone());
                 }
             }
             assert_eq!(fragments.len(), k);
-            for index in 0..k + m {
+            for (index, row) in encoded.iter().enumerate() {
                 if (alive & 1 << index) == 0 {
                     // if index is not alive, reconstruct it and check the validity.
                     let reconstructed = coder.reconstruct(index, fragments.iter())?;
-                    assert_eq!(reconstructed, encoded[index]);
+                    assert_eq!(&reconstructed, row);
                 }
             }
         }
@@ -430,11 +431,13 @@ mod tests {
                             .backend(*backend)
                             .checksum(*checksum)
                             .finish()
-                            .expect(&format!(
-                                "Cannot make coder instance: k={}, m={}, b={:?}, \
+                            .unwrap_or_else(|_| {
+                                panic!(
+                                    "Cannot make coder instance: k={}, m={}, b={:?}, \
                                  c={:?}",
-                                data_fragments, parity_fragments, backend, checksum
-                            ));
+                                    data_fragments, parity_fragments, backend, checksum
+                                )
+                            });
 
                         let data = vec![0, 1, 2, 3];
                         let encoded = coder.encode(&data).unwrap();

@@ -1,8 +1,7 @@
-use std;
 use std::error;
 use std::fmt;
 
-use c_api;
+use crate::c_api;
 
 /// This crate specific [`Result`] type.
 ///
